@@ -18,6 +18,10 @@ The user scan procedure is quite straightforward:
 
 ![schema](./docs/uaa-user-cleaner.png)
 
+# Install & Build
+
+Simply run `go get -u github.com/orange-cloudfoundry/uaa-user-cleaner`
+
 
 # Configuration
 
