@@ -37,7 +37,7 @@ services:
         # Cloud foundry API enpoint
         url: https://api.cf.example.com
 
-        # client with cloud_controller.admin scope
+        # client with cloud_controller.admin authorities
         client_id: admin-client
 
         # corresponding client secret
@@ -47,7 +47,7 @@ services:
         # UAA token endpoint
         token_endpoint: https://uaa.cf.example.com/oauth/token
 
-        # client with scim.write scope
+        # client with scim.read and scim.write authorities
         client_id: uaa-admin-client
 
         # corresponding client secret

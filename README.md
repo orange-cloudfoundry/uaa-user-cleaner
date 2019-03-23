@@ -26,8 +26,8 @@ Simply run `go get -u github.com/orange-cloudfoundry/uaa-user-cleaner`
 # Configuration
 
 **uaa-user-cleaner** requires the following configuration elements:
-* `uaa`: a client with **scim.write** scope
-* `cloud foundry`: a client with **cloud_controller.admin** scope
+* `uaa`: a client with **scim.read** and **scim.write** authorities
+* `cloud foundry`: a client with **cloud_controller.admin** authorities
 * `ldap`:
    * a user with **read** access
    * a search **query**. This query must only match *active* users. Any user in [UAA] that the
@@ -74,7 +74,7 @@ services:
         # Cloud foundry API enpoint
         url: https://api.cf.example.com
 
-        # client with cloud_controller.admin scope
+        # client with cloud_controller.admin autorities
         client_id: admin-client
 
         # corresponding client secret
@@ -84,7 +84,7 @@ services:
         # UAA token endpoint
         token_endpoint: https://uaa.cf.example.com/oauth/token
 
-        # client with scim.write scope
+        # client with scim.read and scim.write authorities
         client_id: uaa-admin-client
 
         # corresponding client secret
