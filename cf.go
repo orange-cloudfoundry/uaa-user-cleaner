@@ -17,17 +17,19 @@ func newCF() (*CF, error) {
 		entry: log.WithFields(log.Fields{"module": "cf"}),
 	}
 	config := &cfclient.Config{
-		ApiAddress:   gConfig.CF.URL,
-		ClientID:     gConfig.CF.ClientID,
-		ClientSecret: gConfig.CF.ClientSecret,
+		ApiAddress:        gConfig.CF.URL,
+		ClientID:          gConfig.CF.ClientID,
+		ClientSecret:      gConfig.CF.ClientSecret,
+		SkipSslValidation: gConfig.CF.SkipSslValidation,
 	}
 	res.entry.WithFields(log.Fields{
-		"url":       gConfig.CF.URL,
-		"client_id": gConfig.CF.ClientID,
+		"url":                 gConfig.CF.URL,
+		"client_id":           gConfig.CF.ClientID,
+		"skip_ssl_validation": gConfig.UAA.SkipSslValidation,
 	}).Debugf("connecting")
 	client, err := cfclient.NewClient(config)
 	if err != nil {
-		res.entry.Errorf("could not connect")
+		res.entry.WithError(err).Error("could not connect")
 		return nil, err
 	}
 	res.client = client

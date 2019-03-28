@@ -19,12 +19,15 @@ type CFConfig struct {
 
 // Validate -
 func (t *CFConfig) Validate() error {
-	// if t.URL == "" {
-	// 	return errors.New("missing mandatory configuration key concourse.url")
-	// }
-	// if len(t.Teams) == 0 {
-	// 	return errors.New("must at least specify one team in configuration key concourse.teams")
-	// }
+	if t.URL == "" {
+		return errors.New("missing mandatory configuration key cf.url")
+	}
+	if t.ClientID == "" {
+		return errors.New("missing mandatory configuration key cf.client_id")
+	}
+	if t.ClientSecret == "" {
+		return errors.New("missing mandatory configuration key cf.client_secret")
+	}
 	return nil
 }
 
@@ -38,12 +41,15 @@ type UAAConfig struct {
 
 // Validate -
 func (t *UAAConfig) Validate() error {
-	// if t.URL == "" {
-	// 	return errors.New("missing mandatory configuration key concourse.url")
-	// }
-	// if len(t.Teams) == 0 {
-	// 	return errors.New("must at least specify one team in configuration key concourse.teams")
-	// }
+	if t.TokenEndpoint == "" {
+		return errors.New("missing mandatory configuration key cf.token_endpoint")
+	}
+	if t.ClientID == "" {
+		return errors.New("missing mandatory configuration key cf.client_id")
+	}
+	if t.ClientSecret == "" {
+		return errors.New("missing mandatory configuration key cf.client_secret")
+	}
 	return nil
 }
 
@@ -59,13 +65,24 @@ type LDAPConfig struct {
 
 // Validate -
 func (w *LDAPConfig) Validate() error {
-	// if w.Listen == "" {
-	// 	return errors.New("missing mandatory listen in web object")
-	// }
+	if w.URL == "" {
+		return errors.New("missing mandatory configuration key ldap.url")
+	}
+	if w.BindUser == "" {
+		return errors.New("missing mandatory configuration key ldap.bind_user")
+	}
+	if w.BindPassword == "" {
+		return errors.New("missing mandatory configuration key ldap.bind_password")
+	}
+	if w.SearchBase == "" {
+		return errors.New("missing mandatory configuration key ldap.search_base")
+	}
+	if w.ValidFilter == "" {
+		return errors.New("missing mandatory configuration key ldap.valid_filter")
+	}
 	if _, err := url.Parse(w.URL); err != nil {
 		return errors.New("invalid url in configuration key ldap.url")
 	}
-
 	return nil
 }
 
@@ -103,7 +120,7 @@ type WebConfig struct {
 // Validate -
 func (w *WebConfig) Validate() error {
 	if w.Listen == "" {
-		return errors.New("missing mandatory listen in web object")
+		return errors.New("missing mandatory configuration key web.listen")
 	}
 	return nil
 }

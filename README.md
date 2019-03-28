@@ -80,6 +80,9 @@ services:
         # corresponding client secret
         client_secret: admin-client-password
 
+        # if true, TLS connection will not be verified
+        skip_ssl_validation: false
+
       uaa:
         # UAA token endpoint
         token_endpoint: https://uaa.cf.example.com/oauth/token
@@ -89,6 +92,9 @@ services:
 
         # corresponding client secret
         client_secret: uaa-admin-client-password
+
+        # if true, TLS connection will not be verified
+        skip_ssl_validation: false
 
       log:
         # log level in PANIC, FATAL, ERROR, WARN, INFO, DEBUG
@@ -113,7 +119,7 @@ services:
 
 # Monitoring
 
-**uaa-user-cleaner** comes with a built-in [prometheus] exporter exposng the following metrics:
+**uaa-user-cleaner** comes with a built-in [prometheus] exporter exposing the following metrics:
 
 
 | Metric               | Type         | Description                                    | Dimensions |
@@ -128,4 +134,5 @@ services:
 [LDAP]: https://docs.cloudfoundry.org/uaa/identity-providers.html
 [prometheus]: https://prometheus.io/
 <!-- Local Variables: -->
+<!-- ispell-local-dictionary: "american" -->
 <!-- End: -->
