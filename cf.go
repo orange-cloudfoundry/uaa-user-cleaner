@@ -38,8 +38,9 @@ func newCF() (*CF, error) {
 
 func (s *CF) deleteUser(guid string, name string) {
 	entry := s.entry.WithFields(log.Fields{
-		"guid": guid,
-		"name": name,
+		"guid":    guid,
+		"name":    name,
+		"dry_run": gConfig.DryRun,
 	})
 	entry.Infof("deleting user")
 	if gConfig.DryRun {

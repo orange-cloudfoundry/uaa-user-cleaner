@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"time"
 )
 
 func init() {
@@ -51,18 +50,6 @@ func initLogs(c Config) {
 
 var gConfig Config
 
-func process() {
-	duration, _ := time.ParseDuration(gConfig.Interval)
-	for {
-		cleaner, err := newCleaner()
-		if err == nil {
-			cleaner.Run()
-			cleaner.Close()
-		}
-		time.Sleep(duration)
-	}
-}
-
 func boot() error {
 	gautocloud.Inject(&gConfig)
 	if err := gConfig.Validate(); err != nil {
@@ -76,8 +63,11 @@ func boot() error {
 		"interval": gConfig.Interval,
 	}).Infof("starting")
 
+	cleaner := newCleaner()
 	r := mux.NewRouter()
+
 	r.Handle("/metrics", promhttp.Handler())
+	r.HandleFunc("/v1/listInvalidUsers", cleaner.ListInvalidUsers)
 
 	port := gautocloud.GetAppInfo().Port
 	listen := gConfig.Web.Listen
@@ -85,13 +75,13 @@ func boot() error {
 		listen = fmt.Sprintf(":%d", port)
 	}
 
-	go process()
+	go cleaner.Run(gConfig.Interval)
 
 	if (gConfig.Web.SSLCert != "") && (gConfig.Web.SSLKey != "") {
-		log.WithField("listen", listen).Debugf("serving https")
+		log.WithField("listen", listen).Infof("serving https")
 		return http.ListenAndServeTLS(listen, gConfig.Web.SSLCert, gConfig.Web.SSLKey, r)
 	}
 
-	log.WithField("listen", listen).Debugf("serving http")
+	log.WithField("listen", listen).Infof("serving http")
 	return http.ListenAndServe(listen, r)
 }

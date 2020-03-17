@@ -44,98 +44,93 @@ func (a *API) doJSONWithHeaders(method string, url *url.URL, headers map[string]
 
 func (a *API) doAndRead(req *http.Request, needsAuthentication bool) ([]byte, error) {
 	req.Header.Add("Accept", "application/json")
-	req.Header.Add("X-Identity-Zone-Id", a.ZoneID)
+	req.Header.Add("X-Identity-Zone-Id", a.zoneID)
+	userAgent := a.userAgent
+	if userAgent == "" {
+		userAgent = "go-uaa"
+	}
+	req.Header.Set("User-Agent", userAgent)
 	switch req.Method {
 	case http.MethodPut, http.MethodPost, http.MethodPatch:
 		req.Header.Add("Content-Type", "application/json")
-	}
-	if a.Verbose {
-		logRequest(req)
 	}
 	a.ensureTimeout()
 	var (
 		resp *http.Response
 		err  error
 	)
-	if needsAuthentication {
-		if a.AuthenticatedClient == nil {
-			return nil, errors.New("doAndRead: the HTTPClient cannot be nil")
-		}
-		a.ensureTransport(a.AuthenticatedClient)
-		resp, err = a.AuthenticatedClient.Do(req)
+	if !needsAuthentication && a.baseClient != nil {
+		a.ensureTransport(a.baseClient.Transport)
+		resp, err = a.baseClient.Do(req)
 	} else {
-		a.ensureTransport(a.UnauthenticatedClient)
-		resp, err = a.UnauthenticatedClient.Do(req)
+		if a.Client == nil {
+			return nil, errors.New("doAndRead: the Client cannot be nil")
+		}
+		a.ensureTransport(a.Client.Transport)
+		resp, err = a.Client.Do(req)
 	}
 
 	if err != nil {
-		if a.Verbose {
+		if a.verbose {
 			fmt.Printf("%v\n\n", err)
 		}
 
 		return nil, requestError(req.URL.String())
 	}
 
-	if a.Verbose {
-		logResponse(resp)
-	}
-
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		if a.Verbose {
+		if a.verbose {
 			fmt.Printf("%v\n\n", err)
 		}
-		return nil, unknownError()
+		return nil, requestError(req.URL.String())
 	}
 
-	if !is2XX(resp.StatusCode) {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if len(bytes) > 0 {
+			return nil, requestErrorWithBody(req.URL.String(), bytes)
+		}
 		return nil, requestError(req.URL.String())
 	}
 	return bytes, nil
 }
 
 func (a *API) ensureTimeout() {
-	if a.AuthenticatedClient != nil && a.AuthenticatedClient.Timeout == 0 {
-		a.AuthenticatedClient.Timeout = time.Second * 120
+	if a.Client != nil && a.Client.Timeout == 0 {
+		a.Client.Timeout = time.Second * 120
 	}
 
-	if a.UnauthenticatedClient != nil && a.UnauthenticatedClient.Timeout == 0 {
-		a.UnauthenticatedClient.Timeout = time.Second * 120
+	if a.baseClient != nil && a.baseClient.Timeout == 0 {
+		a.baseClient.Timeout = time.Second * 120
 	}
 }
 
-func (a *API) ensureTransport(c *http.Client) {
+func (a *API) ensureTransport(c http.RoundTripper) {
 	if c == nil {
 		return
 	}
-	switch t := c.Transport.(type) {
+	switch t := c.(type) {
 	case *oauth2.Transport:
 		b, ok := t.Base.(*http.Transport)
 		if !ok {
 			return
 		}
-		if b.TLSClientConfig == nil && !a.SkipSSLValidation {
+		if b.TLSClientConfig == nil && !a.skipSSLValidation {
 			return
 		}
 		if b.TLSClientConfig == nil {
 			b.TLSClientConfig = &tls.Config{}
 		}
-		b.TLSClientConfig.InsecureSkipVerify = a.SkipSSLValidation
+		b.TLSClientConfig.InsecureSkipVerify = a.skipSSLValidation
 	case *tokenTransport:
-		if t.underlyingTransport.TLSClientConfig == nil && !a.SkipSSLValidation {
-			return
-		}
-		if t.underlyingTransport.TLSClientConfig == nil {
-			t.underlyingTransport.TLSClientConfig = &tls.Config{}
-		}
-		t.underlyingTransport.TLSClientConfig.InsecureSkipVerify = a.SkipSSLValidation
+		a.ensureTransport(t.underlyingTransport)
 	case *http.Transport:
-		if t.TLSClientConfig == nil && !a.SkipSSLValidation {
+		if t.TLSClientConfig == nil && !a.skipSSLValidation {
 			return
 		}
 		if t.TLSClientConfig == nil {
 			t.TLSClientConfig = &tls.Config{}
 		}
-		t.TLSClientConfig.InsecureSkipVerify = a.SkipSSLValidation
+		t.TLSClientConfig.InsecureSkipVerify = a.skipSSLValidation
 	}
 }

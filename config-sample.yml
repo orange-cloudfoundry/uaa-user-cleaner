@@ -48,7 +48,7 @@ services:
 
       uaa:
         # UAA token endpoint
-        token_endpoint: https://uaa.cf.example.com/oauth/token
+        url: https://uaa.cf.example.com/
 
         # client with scim.read and scim.write authorities
         client_id: uaa-admin-client

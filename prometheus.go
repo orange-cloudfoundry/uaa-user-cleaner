@@ -5,8 +5,8 @@ import (
 )
 
 var (
-	gMetricNbErrors = prometheus.NewCounter(
-		prometheus.CounterOpts{
+	gMetricNbErrors = prometheus.NewGauge(
+		prometheus.GaugeOpts{
 			Namespace: "uaa_cleaner",
 			Name:      "errors",
 			Help:      "Number of errors encountered on last user scan",
@@ -19,6 +19,14 @@ var (
 			Help:      "Number users reported on last user scan",
 		},
 		[]string{"origin"},
+	)
+	gMetricNbInvalidUsers = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "uaa_cleaner",
+			Name:      "invalid_users",
+			Help:      "Number users reported on last user scan",
+		},
+		[]string{"origin", "guid", "name"},
 	)
 	gMetricDuration = prometheus.NewHistogram(
 		prometheus.HistogramOpts{
@@ -33,6 +41,7 @@ var (
 func init() {
 	prometheus.MustRegister(gMetricNbErrors)
 	prometheus.MustRegister(gMetricNbUsers)
+	prometheus.MustRegister(gMetricNbInvalidUsers)
 	prometheus.MustRegister(gMetricDuration)
 }
 

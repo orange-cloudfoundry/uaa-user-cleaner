@@ -33,7 +33,7 @@ func (t *CFConfig) Validate() error {
 
 // UAAConfig -
 type UAAConfig struct {
-	TokenEndpoint     string `cloud:"token_endpoint"`
+	URL               string `cloud:"url"`
 	ClientID          string `cloud:"client_id"`
 	ClientSecret      string `cloud:"client_secret"`
 	SkipSslValidation bool   `cloud:"skip_ssl_validation"`
@@ -41,14 +41,14 @@ type UAAConfig struct {
 
 // Validate -
 func (t *UAAConfig) Validate() error {
-	if t.TokenEndpoint == "" {
-		return errors.New("missing mandatory configuration key cf.token_endpoint")
+	if t.URL == "" {
+		return errors.New("missing mandatory configuration key uaa.url")
 	}
 	if t.ClientID == "" {
-		return errors.New("missing mandatory configuration key cf.client_id")
+		return errors.New("missing mandatory configuration key uaa.client_id")
 	}
 	if t.ClientSecret == "" {
-		return errors.New("missing mandatory configuration key cf.client_secret")
+		return errors.New("missing mandatory configuration key uaa.client_secret")
 	}
 	return nil
 }

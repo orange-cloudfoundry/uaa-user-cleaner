@@ -25,18 +25,22 @@ func newUAA() (*UAA, error) {
 }
 func (s *UAA) newAPI() (*uaa.API, error) {
 	s.entry.WithFields(log.Fields{
-		"endpoint":            gConfig.UAA.TokenEndpoint,
+		"url":                 gConfig.UAA.URL,
 		"client_id":           gConfig.UAA.ClientID,
 		"skip_ssl_validation": gConfig.UAA.SkipSslValidation,
 	}).Debugf("connecting")
-	client, err := uaa.NewWithClientCredentials(
-		gConfig.UAA.TokenEndpoint,
-		"",
-		gConfig.UAA.ClientID,
-		gConfig.UAA.ClientSecret,
-		uaa.JSONWebToken,
-		gConfig.UAA.SkipSslValidation,
+
+	client, err := uaa.New(
+		gConfig.UAA.URL,
+		uaa.WithClientCredentials(
+			gConfig.UAA.ClientID,
+			gConfig.UAA.ClientSecret,
+			uaa.JSONWebToken,
+		),
+		uaa.WithSkipSSLValidation(gConfig.UAA.SkipSslValidation),
+		uaa.WithVerbosity(false),
 	)
+
 	if err != nil {
 		s.entry.WithError(err).Errorf("unable to connect")
 		return nil, err
@@ -56,8 +60,9 @@ func (s *UAA) getUsers() ([]uaa.User, error) {
 
 func (s *UAA) deleteUser(guid string, name string) {
 	entry := s.entry.WithFields(log.Fields{
-		"guid": guid,
-		"name": name,
+		"guid":    guid,
+		"name":    name,
+		"dry_run": gConfig.DryRun,
 	})
 	entry.Infof("deleting user")
 	if gConfig.DryRun {

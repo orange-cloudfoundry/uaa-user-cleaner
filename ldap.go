@@ -3,8 +3,8 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	ldap "github.com/go-ldap/ldap/v3"
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/ldap.v3"
 	"strings"
 )
 

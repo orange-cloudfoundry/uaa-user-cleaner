@@ -84,8 +84,8 @@ services:
         skip_ssl_validation: false
 
       uaa:
-        # UAA token endpoint
-        token_endpoint: https://uaa.cf.example.com/oauth/token
+        # UAA base URL
+        URL: https://uaa.cf.example.com/
 
         # client with scim.read and scim.write authorities
         client_id: uaa-admin-client
