@@ -14,6 +14,7 @@ type Cleaner struct {
 	ldap       *LDAP
 	uaa        *UAA
 	cf         *CF
+	hooks      []Hook
 	entry      *log.Entry
 	toDelete   []uaa.User
 	currentErr error
@@ -40,10 +41,15 @@ func (s *Cleaner) initialize() error {
 	if err != nil {
 		return err
 	}
+	hooksHandler, err := newHooks()
+	if err != nil {
+		return err
+	}
 
 	s.ldap = ldapHandler
 	s.uaa = uaaHandler
 	s.cf = cfHandler
+	s.hooks = hooksHandler
 	return nil
 }
 
@@ -113,6 +119,9 @@ func (s *Cleaner) update() {
 
 func (s *Cleaner) prune() {
 	for _, cUser := range s.toDelete {
+		for _, hook := range s.hooks {
+			hook.deleteUser(cUser.ID, cUser.Username)
+		}
 		s.uaa.deleteUser(cUser.ID, cUser.Username)
 		s.cf.deleteUser(cUser.ID, cUser.Username)
 	}

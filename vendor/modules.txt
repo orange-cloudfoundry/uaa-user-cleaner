@@ -29,6 +29,9 @@ github.com/cloudfoundry-community/go-cfenv
 ## explicit
 github.com/cloudfoundry-community/go-uaa
 github.com/cloudfoundry-community/go-uaa/passwordcredentials
+# github.com/creack/pty v1.1.9
+## explicit
+github.com/creack/pty
 # github.com/fsnotify/fsnotify v1.4.9
 ## explicit
 github.com/fsnotify/fsnotify
@@ -67,6 +70,9 @@ github.com/hashicorp/hcl/json/token
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/magiconair/properties v1.8.1
 github.com/magiconair/properties
+# github.com/mattn/go-shellwords v1.0.10
+## explicit
+github.com/mattn/go-shellwords
 # github.com/matttproud/golang_protobuf_extensions v1.0.1
 github.com/matttproud/golang_protobuf_extensions/pbutil
 # github.com/mitchellh/mapstructure v1.2.2

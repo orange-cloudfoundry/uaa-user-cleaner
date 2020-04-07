@@ -78,3 +78,12 @@ services:
 
         # path to SSL key, empty means simple http server
         SSLKey: ""
+
+      hooks:
+        # script call for each user to clean (user's info passed with go template)
+        - path: "/path/to/script"
+          args:
+            - "--username"
+            - "{{.UserName}}"
+            - "--userid"
+            - "{{.UserID}}"
