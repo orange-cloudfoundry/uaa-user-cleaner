@@ -86,7 +86,7 @@ func (w *LDAPConfig) Validate() error {
 	return nil
 }
 
-// GetAddress
+// GetAddress -
 func (w *LDAPConfig) GetAddress() (string, int, bool) {
 	url, _ := url.Parse(w.URL)
 
@@ -125,15 +125,30 @@ func (w *WebConfig) Validate() error {
 	return nil
 }
 
+// HookConfig -
+type HookConfig struct {
+	Path string   `cloud:"path"`
+	Args []string `cloud:"args"`
+}
+
+// Validate -
+func (w *HookConfig) Validate() error {
+	if w.Path == "" {
+		return errors.New("missing mandatory configuration key hooks.path")
+	}
+	return nil
+}
+
 // Config -
 type Config struct {
-	DryRun   bool       `cloud:"dry_run"`
-	Interval string     `cloud:"interval"`
-	CF       CFConfig   `cloud:"cf"`
-	LDAP     LDAPConfig `cloud:"ldap"`
-	UAA      UAAConfig  `cloud:"uaa"`
-	Log      LogConfig  `cloud:"log"`
-	Web      WebConfig  `cloud:"web"`
+	DryRun   bool         `cloud:"dry_run"`
+	Interval string       `cloud:"interval"`
+	CF       CFConfig     `cloud:"cf"`
+	LDAP     LDAPConfig   `cloud:"ldap"`
+	UAA      UAAConfig    `cloud:"uaa"`
+	Log      LogConfig    `cloud:"log"`
+	Web      WebConfig    `cloud:"web"`
+	Hooks    []HookConfig `cloud:"hooks"`
 }
 
 // Validate -
@@ -149,6 +164,11 @@ func (c *Config) Validate() error {
 	}
 	if err := c.Web.Validate(); err != nil {
 		return err
+	}
+	for _, hook := range c.Hooks {
+		if err := hook.Validate(); err != nil {
+			return err
+		}
 	}
 
 	if c.Interval == "" {

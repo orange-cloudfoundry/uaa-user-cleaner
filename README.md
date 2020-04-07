@@ -33,6 +33,9 @@ Simply run `go get -u github.com/orange-cloudfoundry/uaa-user-cleaner`
    * a search **query**. This query must only match *active* users. Any user in [UAA] that the
      search query won't match in [LDAP] will be considered as inactive and deleted from both [UAA]
      and [Cloud Foundry].
+* `hooks`: a list of scripts called for each user to clean with associated parameters. 
+   * a script's path
+   * a list of parameters. accept go template with user's info (`{{.UserName}}` and `{{.UserID}}`) 
 
 ```yml
 # target your local config file with: "CLOUD_FILE=config.yml ./uaa-user-cleaner"
@@ -115,6 +118,15 @@ services:
 
         # path to SSL key, empty means simple http server
         SSLKey: ""
+
+      hooks:
+        # script call for each user to clean (user's info passed with go template)
+        - path: "/path/to/script"
+          args:
+            - "--username"
+            - "{{.UserName}}"
+            - "--userid"
+            - "{{.UserID}}"
 ```
 
 # Monitoring
