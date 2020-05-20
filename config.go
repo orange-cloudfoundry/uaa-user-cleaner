@@ -55,12 +55,13 @@ func (t *UAAConfig) Validate() error {
 
 // LDAPConfig -
 type LDAPConfig struct {
-	URL               string `cloud:"url"`
-	BindUser          string `cloud:"bind_user"`
-	BindPassword      string `cloud:"bind_password"`
-	SearchBase        string `cloud:"search_base"`
-	ValidFilter       string `cloud:"valid_filter"`
-	SkipSslValidation bool   `cloud:"skip_ssl_validation"`
+	URL                 string `cloud:"url"`
+	BindUser            string `cloud:"bind_user"`
+	BindPassword        string `cloud:"bind_password"`
+	SearchBase          string `cloud:"search_base"`
+	ValidFilter         string `cloud:"valid_filter"`
+	SkipSslValidation   bool   `cloud:"skip_ssl_validation"`
+	LastModifiedMaxDays int    `cloud:"last_modified_max_days"`
 }
 
 // Validate -
@@ -79,6 +80,9 @@ func (w *LDAPConfig) Validate() error {
 	}
 	if w.ValidFilter == "" {
 		return errors.New("missing mandatory configuration key ldap.valid_filter")
+	}
+	if w.LastModifiedMaxDays == 0 {
+		w.LastModifiedMaxDays = 42
 	}
 	if _, err := url.Parse(w.URL); err != nil {
 		return errors.New("invalid url in configuration key ldap.url")

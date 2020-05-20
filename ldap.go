@@ -6,6 +6,7 @@ import (
 	ldap "github.com/go-ldap/ldap/v3"
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 // LDAP --
@@ -64,8 +65,19 @@ func (s *LDAP) newClient() (*ldap.Conn, error) {
 	return conn, nil
 }
 
+func (s *LDAP) parseTime(value string) (time.Time, error) {
+	formatStr := "20060102150405Z"
+	return time.Parse(formatStr, value)
+}
+
 func (s *LDAP) isActive(username string) (bool, error) {
-	search := strings.ReplaceAll(gConfig.LDAP.ValidFilter, "{0}", username)
+	maxLastModified := time.Now().Add(time.Hour * time.Duration(gConfig.LDAP.LastModifiedMaxDays))
+	maxLastModifiedStr := maxLastModified.Format("20060102150405Z")
+	search := gConfig.LDAP.ValidFilter
+	search = strings.ReplaceAll(search, "\n", "")
+	search = strings.ReplaceAll(search, "{username}", username)
+	search = strings.ReplaceAll(search, "{maxModifiedTimestamp}", maxLastModifiedStr)
+
 	req := ldap.NewSearchRequest(
 		gConfig.LDAP.SearchBase,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
@@ -80,11 +92,21 @@ func (s *LDAP) isActive(username string) (bool, error) {
 		s.entry.WithError(err).Errorf("error on ldap search")
 		return false, err
 	}
-	for _, entry := range res.Entries {
-		s.entry.WithField("dn", entry.DN).Debugf("found user")
+
+	if len(res.Entries) == 0 {
+		s.entry.WithField("username", username).Debugf("user not found")
+		return false, nil
 	}
-	if len(res.Entries) != 0 {
-		return true, nil
+
+	if len(res.Entries) != 1 {
+		err := fmt.Errorf("non-unique result for username %s", username)
+		s.entry.WithError(err).Errorf("user not unique")
+		return true, err
 	}
-	return false, nil
+
+	entry := res.Entries[0]
+	s.entry.
+		WithField("dn", entry.DN).
+		Debugf("user found")
+	return true, nil
 }
