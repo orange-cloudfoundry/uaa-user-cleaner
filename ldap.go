@@ -3,10 +3,11 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	ldap "github.com/go-ldap/ldap/v3"
-	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	ldap "github.com/go-ldap/ldap/v3"
+	log "github.com/sirupsen/logrus"
 )
 
 // LDAP --
@@ -71,7 +72,7 @@ func (s *LDAP) parseTime(value string) (time.Time, error) {
 }
 
 func (s *LDAP) isActive(username string) (bool, error) {
-	maxLastModified := time.Now().Add(time.Hour * time.Duration(gConfig.LDAP.LastModifiedMaxDays))
+	maxLastModified := time.Now().Add(24 * time.Hour * time.Duration(gConfig.LDAP.LastModifiedMaxDays))
 	maxLastModifiedStr := maxLastModified.Format("20060102150405Z")
 	search := gConfig.LDAP.ValidFilter
 	search = strings.ReplaceAll(search, "\n", "")
