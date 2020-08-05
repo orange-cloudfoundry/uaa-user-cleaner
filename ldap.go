@@ -72,13 +72,13 @@ func (s *LDAP) parseTime(value string) (time.Time, error) {
 }
 
 func (s *LDAP) isActive(username string) (bool, error) {
-	maxLastModified := time.Now().Add(24 * time.Hour * time.Duration(gConfig.LDAP.LastModifiedMaxDays))
+	maxLastModified := time.Now().Add(-24 * time.Hour * time.Duration(gConfig.LDAP.LastModifiedMaxDays))
 	maxLastModifiedStr := maxLastModified.Format("20060102150405Z")
 	search := gConfig.LDAP.ValidFilter
 	search = strings.ReplaceAll(search, "\n", "")
 	search = strings.ReplaceAll(search, "{username}", username)
 	search = strings.ReplaceAll(search, "{maxModifiedTimestamp}", maxLastModifiedStr)
-
+	s.entry.Debugf("ldap_query: %s", search)
 	req := ldap.NewSearchRequest(
 		gConfig.LDAP.SearchBase,
 		ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
