@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"github.com/prometheus/common/version"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 func init() {
@@ -51,6 +53,12 @@ func initLogs(c Config) {
 var gConfig Config
 
 func boot() error {
+	kingpin.Version(version.Print("uaa-user-cleaner"))
+	kingpin.HelpFlag.Short('h')
+	usage := strings.ReplaceAll(kingpin.DefaultUsageTemplate, "usage: ", "usage: CLOUD_FILE=config.yml ")
+	kingpin.UsageTemplate(usage)
+	kingpin.Parse()
+
 	gautocloud.Inject(&gConfig)
 	if err := gConfig.Validate(); err != nil {
 		return err

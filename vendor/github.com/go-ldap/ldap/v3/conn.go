@@ -145,7 +145,7 @@ func (dc *DialContext) dial(u *url.URL) (net.Conn, error) {
 
 	host, port, err := net.SplitHostPort(u.Host)
 	if err != nil {
-		// we asume that error is due to missing port
+		// we assume that error is due to missing port
 		host = u.Host
 		port = ""
 	}
@@ -390,7 +390,12 @@ func (l *Conn) sendMessageWithFlags(packet *ber.Packet, flags sendMessageFlags) 
 			responses: responses,
 		},
 	}
-	l.sendProcessMessage(message)
+	if !l.sendProcessMessage(message) {
+		if l.IsClosing() {
+			return nil, NewError(ErrorNetwork, errors.New("ldap: connection closed"))
+		}
+		return nil, NewError(ErrorNetwork, errors.New("ldap: could not send message for unknown reason"))
+	}
 	return message.Context, nil
 }
 
