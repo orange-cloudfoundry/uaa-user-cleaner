@@ -103,7 +103,8 @@ type App struct {
 	EnableSSH                bool                   `json:"enable_ssh"`
 	DetectedStartCommand     string                 `json:"detected_start_command"`
 	DockerImage              string                 `json:"docker_image"`
-	DockerCredentials        map[string]interface{} `json:"docker_credentials_json"`
+	DockerCredentialsJSON    map[string]interface{} `json:"docker_credentials_json"`
+	DockerCredentials        DockerCredentials      `json:"docker_credentials"`
 	Environment              map[string]interface{} `json:"environment_json"`
 	StagingFailedReason      string                 `json:"staging_failed_reason"`
 	StagingFailedDescription string                 `json:"staging_failed_description"`
@@ -609,6 +610,65 @@ func (c *Client) GetDropletBits(guid string) (io.ReadCloser, error) {
 		return nil, errors.Wrapf(err, "Error downloading droplet %s bits, expected redirect to blobstore", guid)
 	}
 	return resp.Body, nil
+}
+
+// GetDropletBits downloads the application's droplet bits as a tar file
+func (c *Client) UploadDropletBits(dropletReader io.Reader, appGUID string) error {
+	dropletFile, err := ioutil.TempFile("", "droplet")
+	if err != nil {
+		return errors.Wrap(err, "Could not create temp file for droplet bits")
+	}
+
+	defer func() {
+		dropletFile.Close()
+		os.Remove(dropletFile.Name())
+	}()
+
+	writer := multipart.NewWriter(dropletFile)
+	part, err := writer.CreateFormFile("droplet", "droplet.tgz")
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet", appGUID)
+	}
+
+	_, err = io.Copy(part, dropletReader)
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet, failed to copy all bytes", appGUID)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet, failed to close multipart writer", appGUID)
+	}
+
+	_, err = dropletFile.Seek(0, 0)
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet, failed to seek beginning of file", appGUID)
+	}
+	fileStats, err := dropletFile.Stat()
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet, failed to get temp file stats", appGUID)
+	}
+
+	requestURL := fmt.Sprintf("/v2/apps/%s/droplet/upload", appGUID)
+	r := c.NewRequestWithBody("PUT", requestURL, dropletFile)
+	req, err := r.toHTTP()
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet", appGUID)
+	}
+
+	req.ContentLength = fileStats.Size()
+	contentType := fmt.Sprintf("multipart/form-data; boundary=%s", writer.Boundary())
+	req.Header.Set("Content-Type", contentType)
+
+	resp, err := c.Do(req)
+	if err != nil {
+		return errors.Wrapf(err, "Error uploading app %s droplet", appGUID)
+	}
+	if resp.StatusCode != http.StatusCreated {
+		return errors.Wrapf(err, "Error uploading app %s droplet, response code: %d", appGUID, resp.StatusCode)
+	}
+
+	return nil
 }
 
 // CreateApp creates a new empty application that still needs it's
